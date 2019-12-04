@@ -1,0 +1,1 @@
+from .randaugment import CIFAR10Policy, CIFAR10PolicyAll, SVHNPolicy, RandAugment, ImageNetPolicy, Cutout

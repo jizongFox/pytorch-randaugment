@@ -8,10 +8,12 @@ import numpy as np
 from PIL import Image, ImageEnhance, ImageOps
 
 
-def _cutout_pil_impl(pil_img, level):
-    """Apply cutout to pil_img at the specified level."""
+class Cutout:
 
-    def create_cutout_mask(img_height, img_width, num_channels, size):
+    def __init__(self, size=16) -> None:
+        self.size = size
+
+    def _create_cutout_mask(self, img_height, img_width, num_channels, size):
         """Creates a zero mask used for cutout of shape `img_height` x `img_width`.
         Args:
           img_height: Height of image cutout mask will be applied to.
@@ -25,7 +27,7 @@ def _cutout_pil_impl(pil_img, level):
           the `upper_coord` and `lower_coord` which specify where the cutout mask
           will be applied.
         """
-        assert img_height == img_width
+        # assert img_height == img_width
 
         # Sample center where cutout mask will be applied
         height_loc = np.random.randint(low=0, high=img_height)
@@ -48,15 +50,17 @@ def _cutout_pil_impl(pil_img, level):
         mask[upper_coord[0]: lower_coord[0], upper_coord[1]: lower_coord[1], :] = zeros
         return mask, upper_coord, lower_coord
 
-    img_height, img_width, num_channels = (32, 32, 3)
-    _, upper_coord, lower_coord = create_cutout_mask(
-        img_height, img_width, num_channels, level
-    )
-    pixels = pil_img.load()  # create the pixel map
-    for i in range(upper_coord[0], lower_coord[0]):  # for every col:
-        for j in range(upper_coord[1], lower_coord[1]):  # For every row
-            pixels[i, j] = (125, 122, 113, 0)  # set the colour accordingly
-    return pil_img
+    def __call__(self, pil_img):
+        pil_img = pil_img.copy()
+        img_height, img_width, num_channels = (*pil_img.size, 3)
+        _, upper_coord, lower_coord = self._create_cutout_mask(
+            img_height, img_width, num_channels, self.size
+        )
+        pixels = pil_img.load()  # create the pixel map
+        for i in range(upper_coord[0], lower_coord[0]):  # for every col:
+            for j in range(upper_coord[1], lower_coord[1]):  # For every row
+                pixels[i, j] = (125, 122, 113, 0)  # set the colour accordingly
+        return pil_img
 
 
 class ImageNetPolicy(object):
@@ -429,7 +433,7 @@ class SubPolicy(object):
             "autocontrast": lambda img, magnitude: ImageOps.autocontrast(img),
             "equalize": lambda img, magnitude: ImageOps.equalize(img),
             "invert": lambda img, magnitude: ImageOps.invert(img),
-            "cutout": lambda img, magnitude: _cutout_pil_impl(img, magnitude),
+            "cutout": lambda img, magnitude: Cutout(magnitude)(img),
         }
 
         self.p1 = p1
@@ -453,10 +457,12 @@ class SubPolicy(object):
             f"{self._operation2_name} with p:{self.p2} and magnitude:{self.magnitude2} \n"
 
 
-## add randaug
-# randaugment is adaptived from UDA tensorflow implementation:
-# https://github.com/jizongFox/uda
 class RandAugment:
+    """
+    # randaugment is adaptived from UDA tensorflow implementation:
+    # https://github.com/jizongFox/uda
+    """
+
     @classmethod
     def get_trans_list(cls):
         trans_list = [
@@ -479,15 +485,12 @@ class RandAugment:
 
     def __init__(self) -> None:
         super().__init__()
-        random_policies = self.get_rand_policies()
-        self.policies = []
-
-        for _policy in random_policies:
-            self.policies.append(SubPolicy(*_policy[0], *_policy[1]))
+        self._policies = self.get_rand_policies()
 
     def __call__(self, img):
-        policy_idx = random.randint(0, len(self.policies) - 1)
-        return self.policies[policy_idx](img)
+        randomly_chosen_policy = self._policies[random.randint(0, len(self._policies) - 1)]
+        policy = SubPolicy(*randomly_chosen_policy[0], *randomly_chosen_policy[1])
+        return policy(img)
 
     def __repr__(self):
         return "Random Augment Policy"
