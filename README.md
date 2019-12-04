@@ -17,8 +17,8 @@ data = ImageFolder(rootdir, transform=transforms.Compose(
                             transforms.RandomHorizontalFlip(), 
                             RandAugment(),
                             #ImageNetPolicy(),
-                            transforms.ToTensor(), 
                             Cutout(size=16), # (https://github.com/uoguelph-mlrg/Cutout/blob/master/util/cutout.py)
+                            transforms.ToTensor(), 
                             transforms.Normalize(...)
                         ])
 )
