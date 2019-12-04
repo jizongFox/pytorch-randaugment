@@ -10,7 +10,7 @@ pip install randaugment
 
 ## How to use:
 ```python
-from autoaugment import RandAugment, ImageNetPolicy
+from randaugment import RandAugment, ImageNetPolicy
 data = ImageFolder(rootdir, transform=transforms.Compose(
                         [
                             transforms.RandomCrop(32, padding=4, fill=128), # fill parameter needs torchvision installed from source
