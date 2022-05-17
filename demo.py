@@ -8,7 +8,7 @@ img = Image.open(requests.get(url, stream=True).raw)
 img=img.resize((256,256))
 random_transform = RandAugment()
 cutout = Cutout(size=30)
-for i in range(5):
+for _ in range(5):
     img_ = random_transform(img)
     img_ = cutout(img_)
     img_.show()
