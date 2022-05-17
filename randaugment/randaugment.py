@@ -465,11 +465,23 @@ class RandAugment:
 
     @classmethod
     def get_trans_list(cls):
-        trans_list = [
-            'Invert', 'Cutout', 'Sharpness', 'AutoContrast', 'Posterize',
-            'ShearX', 'TranslateX', 'TranslateY', 'ShearY', 'Rotate',
-            'Equalize', 'Contrast', 'Color', 'Solarize', 'Brightness']
-        return trans_list
+        return [
+            'Invert',
+            'Cutout',
+            'Sharpness',
+            'AutoContrast',
+            'Posterize',
+            'ShearX',
+            'TranslateX',
+            'TranslateY',
+            'ShearY',
+            'Rotate',
+            'Equalize',
+            'Contrast',
+            'Color',
+            'Solarize',
+            'Brightness',
+        ]
 
     @classmethod
     def get_rand_policies(cls):
